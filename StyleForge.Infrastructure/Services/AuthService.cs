@@ -35,7 +35,8 @@ public class AuthService : IAuthService
             Email = request.Email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = "Admin",
-            TenantId = tenant.Id
+            TenantId = tenant.Id,
+            CreatedAt = DateTime.UtcNow
         };
 
         _context.Users.Add(user);
