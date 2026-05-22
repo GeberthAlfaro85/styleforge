@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace StyleForge.Application.DTOs.Clients;
 
-public class CreateClientRequest
+public class UpdateClientRequest
 {
     [Required, MinLength(2)]
     public string Name { get; set; } = string.Empty;
@@ -12,7 +12,4 @@ public class CreateClientRequest
 
     [EmailAddress]
     public string? Email { get; set; }
-
-    [MinLength(6)]
-    public string? Password { get; set; }
 }

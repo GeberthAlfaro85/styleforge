@@ -18,12 +18,6 @@ public class JwtService
 
     public string GenerateToken(User user)
     {
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
-        );
-
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
         var claims = new[]
         {
             new Claim("tenantId", user.TenantId.ToString()),
@@ -32,6 +26,28 @@ public class JwtService
             new Claim(ClaimTypes.Role, user.Role)
         };
 
+        return BuildToken(claims);
+    }
+
+    public string GenerateClientToken(Client client)
+    {
+        var claims = new[]
+        {
+            new Claim("tenantId", client.TenantId.ToString()),
+            new Claim(ClaimTypes.NameIdentifier, client.Id.ToString()),
+            new Claim(ClaimTypes.Email, client.Email ?? string.Empty),
+            new Claim(ClaimTypes.Role, "Client")
+        };
+
+        return BuildToken(claims);
+    }
+
+    private string BuildToken(Claim[] claims)
+    {
+        var key = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(_config["Jwt:Key"]!)
+        );
+
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
@@ -39,7 +55,7 @@ public class JwtService
             expires: DateTime.UtcNow.AddMinutes(
                 Convert.ToDouble(_config["Jwt:ExpireMinutes"])
             ),
-            signingCredentials: creds
+            signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);

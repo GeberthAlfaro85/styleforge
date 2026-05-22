@@ -69,6 +69,31 @@ public class AuthService : IAuthService
         };
     }
 
+    public async Task<AuthResponse> LoginClient(LoginClientRequest request)
+    {
+        var client = await _context.Clients
+            .FirstOrDefaultAsync(x => x.Email == request.Email);
+
+        if (client == null || client.PasswordHash == null)
+            throw new Exception("Invalid credentials");
+
+        if (!BCrypt.Net.BCrypt.Verify(request.Password, client.PasswordHash))
+            throw new Exception("Invalid credentials");
+
+        return new AuthResponse
+        {
+            Token = _jwt.GenerateClientToken(client),
+            User = new UserDto
+            {
+                Id = client.Id,
+                Name = client.Name,
+                Email = client.Email ?? string.Empty,
+                Role = "Client",
+                TenantId = client.TenantId
+            }
+        };
+    }
+
     private UserDto Map(User user)
     {
         return new UserDto

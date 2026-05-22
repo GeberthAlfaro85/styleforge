@@ -17,9 +17,16 @@ public class ClientService : IClientService
         _current = current;
     }
 
-    public async Task<List<ClientDto>> GetAll()
+    public async Task<List<ClientDto>> GetAll(string? search)
     {
-        return await _context.Clients
+        var query = _context.Clients.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(c =>
+                c.Name.ToLower().Contains(search.ToLower()) ||
+                c.Phone.Contains(search));
+
+        return await query
             .Select(c => new ClientDto
             {
                 Id = c.Id,
@@ -37,7 +44,10 @@ public class ClientService : IClientService
             Name = request.Name,
             Phone = request.Phone,
             Email = request.Email,
-            TenantId = _current.TenantId!.Value
+            TenantId = _current.TenantId!.Value,
+            PasswordHash = request.Password != null
+                ? BCrypt.Net.BCrypt.HashPassword(request.Password)
+                : null
         };
 
         _context.Clients.Add(client);
@@ -50,5 +60,40 @@ public class ClientService : IClientService
             Phone = client.Phone,
             Email = client.Email
         };
+    }
+
+    public async Task<ClientDto> Update(Guid id, UpdateClientRequest request)
+    {
+        var client = await _context.Clients
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (client == null)
+            throw new Exception("Client not found");
+
+        client.Name = request.Name;
+        client.Phone = request.Phone;
+        client.Email = request.Email;
+
+        await _context.SaveChangesAsync();
+
+        return new ClientDto
+        {
+            Id = client.Id,
+            Name = client.Name,
+            Phone = client.Phone,
+            Email = client.Email
+        };
+    }
+
+    public async Task Delete(Guid id)
+    {
+        var client = await _context.Clients
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+        if (client == null)
+            throw new Exception("Client not found");
+
+        _context.Clients.Remove(client);
+        await _context.SaveChangesAsync();
     }
 }

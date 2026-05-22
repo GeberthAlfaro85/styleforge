@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet run *)",
+      "Bash(curl -s http://localhost:5224/api/auth/register -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"companyName\\\\\":\\\\\"Test Salon\\\\\",\\\\\"name\\\\\":\\\\\"Admin Test\\\\\",\\\\\"email\\\\\":\\\\\"admin@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Admin123\\\\\"}\")",
+      "Bash(curl -s http://localhost:5087/api/auth/register -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"companyName\\\\\":\\\\\"Test Salon\\\\\",\\\\\"name\\\\\":\\\\\"Admin Test\\\\\",\\\\\"email\\\\\":\\\\\"admin2@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Admin123\\\\\"}\")",
+      "PowerShell(Stop-Process -Id 14976 -Force)",
+      "Bash(curl -s http://localhost:5087/api/auth/login-client -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"maria@test.com\\\\\",\\\\\"password\\\\\":\\\\\"wrongpass\\\\\"}\")"
+    ]
+  }
+}
