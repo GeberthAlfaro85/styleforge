@@ -18,6 +18,9 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<Service> Services => Set<Service>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -31,5 +34,33 @@ public class AppDbContext : DbContext
             .HasQueryFilter(x =>
                 _currentUser.TenantId == null ||
                 x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<Service>()
+            .HasQueryFilter(x =>
+                _currentUser.TenantId == null ||
+                x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<Appointment>()
+            .HasQueryFilter(x =>
+                _currentUser.TenantId == null ||
+                x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Client)
+            .WithMany()
+            .HasForeignKey(a => a.ClientId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Service)
+            .WithMany()
+            .HasForeignKey(a => a.ServiceId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Staff)
+            .WithMany()
+            .HasForeignKey(a => a.StaffId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

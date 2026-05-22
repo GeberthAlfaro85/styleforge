@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using StyleForge.Application.DTOs;
 using StyleForge.Application.DTOs.Clients;
 using StyleForge.Application.Interfaces;
 using StyleForge.Domain.Entities;
@@ -17,7 +18,7 @@ public class ClientService : IClientService
         _current = current;
     }
 
-    public async Task<List<ClientDto>> GetAll(string? search)
+    public async Task<PagedResult<ClientDto>> GetAll(string? search, int page, int pageSize)
     {
         var query = _context.Clients.AsQueryable();
 
@@ -26,7 +27,11 @@ public class ClientService : IClientService
                 c.Name.ToLower().Contains(search.ToLower()) ||
                 c.Phone.Contains(search));
 
-        return await query
+        var total = await query.CountAsync();
+        var items = await query
+            .OrderBy(c => c.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new ClientDto
             {
                 Id = c.Id,
@@ -35,6 +40,14 @@ public class ClientService : IClientService
                 Email = c.Email
             })
             .ToListAsync();
+
+        return new PagedResult<ClientDto>
+        {
+            Items = items,
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<ClientDto> Create(CreateClientRequest request)
