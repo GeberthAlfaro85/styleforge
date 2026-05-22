@@ -17,12 +17,17 @@ public class AppDbContext : DbContext
     }
     public DbSet<User> Users => Set<User>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
-
+    public DbSet<Client> Clients => Set<Client>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<User>()
+            .HasQueryFilter(x =>
+                _currentUser.TenantId == null ||
+                x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<Client>()
             .HasQueryFilter(x =>
                 _currentUser.TenantId == null ||
                 x.TenantId == _currentUser.TenantId);
