@@ -1,0 +1,6 @@
+@StyleForge.API_HostAddress = http://localhost:5087
+
+GET {{StyleForge.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

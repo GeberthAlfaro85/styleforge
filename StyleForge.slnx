@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="StyleForge.API/StyleForge.API.csproj" />
+  <Project Path="StyleForge.Application/StyleForge.Application.csproj" />
+  <Project Path="StyleForge.Domain/StyleForge.Domain.csproj" />
+  <Project Path="StyleForge.Infrastructure/StyleForge.Infrastructure.csproj" />
+</Solution>
