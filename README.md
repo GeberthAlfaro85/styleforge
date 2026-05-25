@@ -53,11 +53,41 @@ Edita `StyleForge.API/appsettings.json`:
 
 ### 3. Aplicar migraciones
 
-Desde la raíz del proyecto:
+Desde la carpeta `StyleForge.Infrastructure`:
 
 ```bash
-dotnet ef database update --project StyleForge.Infrastructure --startup-project StyleForge.API
+dotnet ef database update --startup-project ..\StyleForge.API
 ```
+
+---
+
+#### Solución de problemas con migraciones
+
+**Error: `relation "X" does not exist`**
+
+Ocurre cuando las migraciones tienen timestamps desordenados (una migración tardía tiene un timestamp anterior a `InitialCreate`), lo que hace que EF Core las aplique en el orden incorrecto. Solución: eliminar todas las migraciones y recrear una sola desde el modelo actual.
+
+```bash
+# Desde StyleForge.Infrastructure
+Remove-Item Migrations\202605*
+Remove-Item Migrations\AppDbContextModelSnapshot.cs
+dotnet ef migrations add InitialCreate --startup-project ..\StyleForge.API
+dotnet ef database update --startup-project ..\StyleForge.API
+```
+
+> Solo hacer esto si la base de datos está vacía o es nueva. Si ya tiene datos, analizar primero qué migraciones faltan.
+
+---
+
+**Error: `Host desconocido` o fallo de DNS al conectar con Supabase**
+
+Las conexiones directas a Supabase (`db.xxx.supabase.co`) usan **solo IPv6**. Si tu red es IPv4, usa el **Session Pooler** en `appsettings.json`:
+
+```json
+"DefaultConnection": "Host=aws-1-us-east-2.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.{PROJECT-REF};Password={PASSWORD};SSL Mode=Require;Trust Server Certificate=true"
+```
+
+El host y el `USERNAME` exactos están en el dashboard de Supabase → **Get connected → Pooler settings**.
 
 ### 4. Ejecutar
 
@@ -67,6 +97,8 @@ dotnet run
 ```
 
 La API queda disponible en `http://localhost:5087`. El Swagger UI en `http://localhost:5087/swagger`.
+
+> **Producción:** `https://styleforge-pjbu.onrender.com` — Swagger en `https://styleforge-pjbu.onrender.com/swagger`
 
 ---
 
