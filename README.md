@@ -102,6 +102,34 @@ La API queda disponible en `http://localhost:5087`. El Swagger UI en `http://loc
 
 ---
 
+## Deploy en Render
+
+El proyecto incluye un `Dockerfile` en la raíz. Para desplegar en Render:
+
+1. Crea un **Web Service** en [render.com](https://render.com) conectado al repositorio de GitHub.
+2. Configura:
+   - **Language:** Docker
+   - **Branch:** main
+   - **Instance Type:** Free
+3. Agrega las siguientes **Environment Variables**:
+
+| Variable | Descripción |
+|---|---|
+| `ConnectionStrings__DefaultConnection` | Connection string de Supabase (Session Pooler) |
+| `Jwt__Key` | Clave secreta JWT (mínimo 32 caracteres) |
+| `Jwt__Issuer` | `StyleForge` |
+| `Jwt__Audience` | `StyleForgeUsers` |
+
+4. Haz clic en **Deploy Web Service**.
+
+Render redespliega automáticamente en cada push a `main`.
+
+> **Nota:** El plan Free se duerme tras 15 min de inactividad. La primera petición después tarda ~30 seg (cold start).
+
+> **URL de producción:** `https://styleforge-pjbu.onrender.com` — Swagger: `https://styleforge-pjbu.onrender.com/swagger`
+
+---
+
 ## Arquitectura
 
 ```
