@@ -119,6 +119,7 @@ El proyecto incluye un `Dockerfile` en la raíz. Para desplegar en Render:
 | `Jwt__Key` | Clave secreta JWT (mínimo 32 caracteres) |
 | `Jwt__Issuer` | `StyleForge` |
 | `Jwt__Audience` | `StyleForgeUsers` |
+| `License__MasterKey` | Clave maestra para renovar licencias (inventar una clave segura) |
 
 4. Haz clic en **Deploy Web Service**.
 
@@ -407,6 +408,76 @@ Formato del error:
 ```json
 {
   "message": "Client not found"
+}
+```
+
+---
+
+## Sistema de Licencias
+
+### ¿Dónde se guarda?
+
+El campo `LicenseExpiresAt` (timestamp nullable) se almacena directamente en la tabla `Tenants`:
+
+```sql
+SELECT "Id", "Name", "LicenseExpiresAt" FROM "Tenants";
+```
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `LicenseExpiresAt` | `timestamp with time zone` (nullable) | Fecha de expiración. `NULL` = licencia permanente. |
+
+### Comportamiento
+
+- Al registrarse, cada tenant recibe **30 días de trial automáticamente**.
+- Cuando la licencia expira, cualquier request autenticado retorna `403 Forbidden`.
+- Los endpoints de login (`/api/auth/login`, `/api/auth/login-client`) siguen funcionando aunque la licencia esté expirada.
+
+### Endpoints
+
+#### Consultar estado de licencia
+```http
+GET /api/license
+Authorization: Bearer {token}
+```
+Respuesta:
+```json
+{
+  "isActive": true,
+  "expiresAt": "2026-06-25T00:00:00Z",
+  "daysRemaining": 30,
+  "status": "Activa"
+}
+```
+`status` puede ser: `"Activa"`, `"Expirada"` o `"Permanente"` (cuando `LicenseExpiresAt` es null).
+
+#### Renovar licencia
+No requiere JWT. Usa una clave maestra en el header `X-Master-Key` (configurada en variables de entorno como `License__MasterKey`).
+
+Si la licencia aún está activa, extiende desde la fecha de expiración actual. Si ya expiró, extiende desde hoy.
+
+```http
+POST /api/license/renew
+X-Master-Key: {tu-master-key}
+Content-Type: application/json
+
+{
+  "tenantId": "uuid-del-tenant",
+  "days": 30
+}
+```
+Respuesta:
+```json
+{
+  "message": "Licencia renovada por 30 días.",
+  "tenantId": "...",
+  "tenantName": "Mi Salón",
+  "license": {
+    "isActive": true,
+    "expiresAt": "2026-07-25T00:00:00Z",
+    "daysRemaining": 30,
+    "status": "Activa"
+  }
 }
 ```
 

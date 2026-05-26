@@ -13,14 +13,16 @@ public class LicenseController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IConfiguration _config;
 
-    public LicenseController(AppDbContext db, ICurrentUserService currentUser)
+    public LicenseController(AppDbContext db, ICurrentUserService currentUser, IConfiguration config)
     {
         _db = db;
         _currentUser = currentUser;
+        _config = config;
     }
 
-    /// <summary>Retorna el estado actual de la licencia del tenant.</summary>
+    /// <summary>Retorna el estado actual de la licencia del tenant autenticado.</summary>
     [HttpGet]
     public async Task<IActionResult> GetLicenseStatus()
     {
@@ -33,18 +35,56 @@ public class LicenseController : ControllerBase
 
         if (tenant == null) return NotFound();
 
+        return Ok(BuildLicenseResponse(tenant.IsLicenseActive, tenant.LicenseExpiresAt));
+    }
+
+    /// <summary>
+    /// Renueva la licencia de un tenant por N días.
+    /// Requiere el header X-Master-Key con la clave maestra configurada en el servidor.
+    /// </summary>
+    [HttpPost("renew")]
+    [AllowAnonymous]
+    public async Task<IActionResult> RenewLicense([FromBody] RenewLicenseRequest request)
+    {
+        var masterKey = _config["License:MasterKey"];
+        var providedKey = Request.Headers["X-Master-Key"].FirstOrDefault();
+
+        if (string.IsNullOrEmpty(providedKey) || providedKey != masterKey)
+            return Unauthorized(new { message = "Master key inválida." });
+
+        var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Id == request.TenantId);
+        if (tenant == null) return NotFound(new { message = "Tenant no encontrado." });
+
+        // Si ya expiró, renovar desde hoy. Si aún está activa, extender desde la fecha actual de expiración.
+        var baseDate = tenant.IsLicenseActive && tenant.LicenseExpiresAt.HasValue
+            ? tenant.LicenseExpiresAt.Value
+            : DateTime.UtcNow;
+
+        tenant.LicenseExpiresAt = baseDate.AddDays(request.Days);
+        await _db.SaveChangesAsync();
+
         return Ok(new
         {
-            isActive = tenant.IsLicenseActive,
-            expiresAt = tenant.LicenseExpiresAt,
-            daysRemaining = tenant.LicenseExpiresAt.HasValue
-                ? Math.Max(0, (int)(tenant.LicenseExpiresAt.Value - DateTime.UtcNow).TotalDays)
-                : (int?)null,
-            status = tenant.LicenseExpiresAt == null
-                ? "Permanente"
-                : tenant.IsLicenseActive
-                    ? "Activa"
-                    : "Expirada"
+            message = $"Licencia renovada por {request.Days} días.",
+            tenantId = tenant.Id,
+            tenantName = tenant.Name,
+            license = BuildLicenseResponse(tenant.IsLicenseActive, tenant.LicenseExpiresAt)
         });
     }
+
+    private static object BuildLicenseResponse(bool isActive, DateTime? expiresAt) => new
+    {
+        isActive,
+        expiresAt,
+        daysRemaining = expiresAt.HasValue
+            ? Math.Max(0, (int)(expiresAt.Value - DateTime.UtcNow).TotalDays)
+            : (int?)null,
+        status = expiresAt == null
+            ? "Permanente"
+            : isActive
+                ? "Activa"
+                : "Expirada"
+    };
 }
+
+public record RenewLicenseRequest(Guid TenantId, int Days);
