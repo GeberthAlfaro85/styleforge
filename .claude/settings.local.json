@@ -7,7 +7,24 @@
       "Bash(curl -s http://localhost:5224/api/auth/register -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"companyName\\\\\":\\\\\"Test Salon\\\\\",\\\\\"name\\\\\":\\\\\"Admin Test\\\\\",\\\\\"email\\\\\":\\\\\"admin@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Admin123\\\\\"}\")",
       "Bash(curl -s http://localhost:5087/api/auth/register -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"companyName\\\\\":\\\\\"Test Salon\\\\\",\\\\\"name\\\\\":\\\\\"Admin Test\\\\\",\\\\\"email\\\\\":\\\\\"admin2@test.com\\\\\",\\\\\"password\\\\\":\\\\\"Admin123\\\\\"}\")",
       "PowerShell(Stop-Process -Id 14976 -Force)",
-      "Bash(curl -s http://localhost:5087/api/auth/login-client -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"maria@test.com\\\\\",\\\\\"password\\\\\":\\\\\"wrongpass\\\\\"}\")"
+      "Bash(curl -s http://localhost:5087/api/auth/login-client -X POST -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"maria@test.com\\\\\",\\\\\"password\\\\\":\\\\\"wrongpass\\\\\"}\")",
+      "PowerShell(cd \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\"; dotnet build 2>&1 | Where-Object { $_ -match \"error\" })",
+      "Bash(curl -s http://localhost:5087/api/auth/login-client -X POST -H 'Content-Type: application/json' -d '{\"email\":\"ana@gmail.com\",\"password\":\"Ana123\"}')",
+      "Bash(curl -s http://localhost:5087/api/auth/login -X POST -H 'Content-Type: application/json' -d '{\"email\":\"mariela@bellezatotal.com\",\"password\":\"Mariela123\"}')",
+      "Bash(git add *)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\geber\\\\.claude\\\\projects\\\\C--Users-geber-source-repos-StyleForge\\\\memory\")",
+      "Bash(ng version *)",
+      "Bash(npm --version)",
+      "Bash(npm install *)",
+      "Bash(ls \"C:\\\\Users\\\\geber\\\\source\\\\repos\")",
+      "Bash(ng new *)",
+      "Bash(npx tailwindcss *)",
+      "Bash(ng build *)",
+      "Bash(npm uninstall *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/tailwindcss/package.json'\\).version\\)\")",
+      "PowerShell(Test-NetConnection -ComputerName \"db.kyradaefwqrckzhrzday.supabase.co\" -Port 5432)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\\\\StyleForge.Infrastructure\\\\Migrations\\\\202605*\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\\\\StyleForge.Infrastructure\\\\Migrations\\\\AppDbContextModelSnapshot.cs\")"
     ]
   }
 }

@@ -23,7 +23,8 @@ public class AuthService : IAuthService
         var tenant = new Tenant
         {
             Name = request.CompanyName,
-            Email = request.Email
+            Email = request.Email,
+            LicenseExpiresAt = DateTime.UtcNow.AddDays(30)
         };
 
         _context.Add(tenant);

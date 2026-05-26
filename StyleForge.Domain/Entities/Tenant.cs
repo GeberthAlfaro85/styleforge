@@ -16,4 +16,13 @@ public class Tenant
     public string Email { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Fecha de expiración de la licencia. Null = sin expiración.
+    /// Al registrarse se otorgan 30 días de prueba automáticamente.
+    /// </summary>
+    public DateTime? LicenseExpiresAt { get; set; }
+
+    /// <summary>Indica si la licencia está activa (no ha expirado).</summary>
+    public bool IsLicenseActive => LicenseExpiresAt == null || LicenseExpiresAt > DateTime.UtcNow;
 }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using StyleForge.API.Middleware;
 using StyleForge.API.Services;
 using StyleForge.Application.Interfaces;
 using StyleForge.Infrastructure.Data;
@@ -114,6 +115,8 @@ if (!app.Environment.IsDevelopment())
 app.UseCors("FrontendDev");
 
 app.UseAuthentication();
+
+app.UseMiddleware<LicenseMiddleware>();
 
 app.UseAuthorization();
 
