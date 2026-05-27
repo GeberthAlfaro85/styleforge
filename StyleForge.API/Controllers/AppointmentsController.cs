@@ -60,6 +60,7 @@ public class AppointmentsController : ControllerBase
     /// Estados válidos: <c>Pending</c>, <c>Confirmed</c>, <c>Cancelled</c>, <c>Completed</c>.
     /// </summary>
     /// <param name="id">ID de la cita.</param>
+    /// <param name="request">Nuevo estado de la cita.</param>
     /// <response code="200">Estado actualizado.</response>
     /// <response code="404">Cita no encontrada.</response>
     [HttpPut("{id}/status")]

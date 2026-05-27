@@ -46,6 +46,7 @@ public class ServicesController : ControllerBase
     /// Actualiza un servicio existente. Solo Admin.
     /// </summary>
     /// <param name="id">ID del servicio.</param>
+    /// <param name="request">Datos actualizados del servicio.</param>
     /// <response code="200">Servicio actualizado.</response>
     /// <response code="404">Servicio no encontrado.</response>
     [HttpPut("{id}")]

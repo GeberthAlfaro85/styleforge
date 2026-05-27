@@ -49,6 +49,7 @@ public class ClientsController : ControllerBase
     /// Actualiza los datos de un cliente existente. Solo Admin.
     /// </summary>
     /// <param name="id">ID del cliente a actualizar.</param>
+    /// <param name="request">Datos actualizados del cliente.</param>
     /// <response code="200">Cliente actualizado.</response>
     /// <response code="404">Cliente no encontrado en este tenant.</response>
     [HttpPut("{id}")]

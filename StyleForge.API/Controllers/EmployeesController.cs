@@ -53,6 +53,7 @@ public class EmployeesController : ControllerBase
     /// Actualiza nombre y email de un empleado.
     /// </summary>
     /// <param name="id">ID del empleado.</param>
+    /// <param name="request">Datos actualizados del empleado.</param>
     /// <response code="200">Empleado actualizado.</response>
     /// <response code="404">Empleado no encontrado en este tenant.</response>
     [HttpPut("{id}")]
