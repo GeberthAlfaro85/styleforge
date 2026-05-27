@@ -75,12 +75,32 @@ public class AppointmentService : IAppointmentService
             ? _current.UserId!.Value
             : request.ClientId ?? throw new Exception("ClientId is required");
 
+        // Validar conflicto de horario del empleado
+        var service = await _context.Services.FindAsync(request.ServiceId)
+            ?? throw new Exception("Service not found");
+
+        var newStart = request.ScheduledAt.ToUniversalTime();
+        var newEnd = newStart.AddMinutes(service.DurationMinutes);
+
+        var hasConflict = await _context.Appointments
+            .Where(a => a.StaffId == request.StaffId
+                     && a.Status != "Cancelled"
+                     && a.TenantId == _current.TenantId!.Value)
+            .Join(_context.Services,
+                a => a.ServiceId,
+                s => s.Id,
+                (a, s) => new { a.ScheduledAt, End = a.ScheduledAt.AddMinutes(s.DurationMinutes) })
+            .AnyAsync(a => newStart < a.End && newEnd > a.ScheduledAt);
+
+        if (hasConflict)
+            throw new Exception("El empleado ya tiene una cita en ese horario.");
+
         var appointment = new Appointment
         {
             ClientId = clientId,
             ServiceId = request.ServiceId,
             StaffId = request.StaffId,
-            ScheduledAt = request.ScheduledAt.ToUniversalTime(),
+            ScheduledAt = newStart, // ya convertido a UTC arriba
             Notes = request.Notes,
             TenantId = _current.TenantId!.Value
         };
