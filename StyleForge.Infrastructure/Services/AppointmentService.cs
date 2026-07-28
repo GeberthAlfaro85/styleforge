@@ -73,11 +73,11 @@ public class AppointmentService : IAppointmentService
     {
         var clientId = _current.Role == "Client"
             ? _current.UserId!.Value
-            : request.ClientId ?? throw new Exception("ClientId is required");
+            : request.ClientId ?? throw new ArgumentException("ClientId es requerido.");
 
         // Validar conflicto de horario del empleado
         var service = await _context.Services.FindAsync(request.ServiceId)
-            ?? throw new Exception("Service not found");
+            ?? throw new KeyNotFoundException("No se encuentra disponible el servicio solicitado.");
 
         var newStart = request.ScheduledAt.ToUniversalTime();
         var newEnd = newStart.AddMinutes(service.DurationMinutes);
@@ -93,7 +93,7 @@ public class AppointmentService : IAppointmentService
             .AnyAsync(a => newStart < a.End && newEnd > a.ScheduledAt);
 
         if (hasConflict)
-            throw new Exception("El empleado ya tiene una cita en ese horario.");
+            throw new InvalidOperationException("El empleado ya tiene una cita en ese horario.");
 
         var appointment = new Appointment
         {
