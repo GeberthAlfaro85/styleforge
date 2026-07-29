@@ -10,7 +10,7 @@ namespace StyleForge.API.Controllers;
 /// Los empleados se crean con rol User dentro del mismo tenant del Admin.
 /// Para hacer login usan <c>POST /api/auth/login</c>.
 /// </summary>
-[Authorize(Roles = "Admin")]
+[Authorize]
 [ApiController]
 [Route("api/employees")]
 public class EmployeesController : ControllerBase
