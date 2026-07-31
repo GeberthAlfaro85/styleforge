@@ -101,6 +101,8 @@ builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
+builder.Services.AddScoped<ITenantService, TenantService>();
+
 var app = builder.Build();
 
 app.UseExceptionHandler(errApp =>
