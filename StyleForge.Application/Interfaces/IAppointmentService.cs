@@ -10,9 +10,9 @@ public interface IAppointmentService
 {
     /// <summary>
     /// Lista todas las citas del tenant ordenadas por fecha descendente.
-    /// Para uso de Admin y empleados.
+    /// Para uso de Admin y empleados. Si se pasa staffId, filtra solo las citas de ese empleado.
     /// </summary>
-    Task<PagedResult<AppointmentDto>> GetAll(int page, int pageSize);
+    Task<PagedResult<AppointmentDto>> GetAll(int page, int pageSize, Guid? staffId = null);
 
     /// <summary>
     /// Lista solo las citas del cliente autenticado.

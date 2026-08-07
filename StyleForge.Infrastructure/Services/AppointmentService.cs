@@ -18,12 +18,16 @@ public class AppointmentService : IAppointmentService
         _current = current;
     }
 
-    public async Task<PagedResult<AppointmentDto>> GetAll(int page, int pageSize)
+    public async Task<PagedResult<AppointmentDto>> GetAll(int page, int pageSize, Guid? staffId = null)
     {
         var query = _context.Appointments
             .Include(a => a.Client)
             .Include(a => a.Service)
-            .Include(a => a.Staff);
+            .Include(a => a.Staff)
+            .AsQueryable();
+
+        if (staffId.HasValue)
+            query = query.Where(a => a.StaffId == staffId.Value);
 
         var total = await query.CountAsync();
         var items = await query
@@ -81,6 +85,13 @@ public class AppointmentService : IAppointmentService
 
         var newStart = request.ScheduledAt.ToUniversalTime();
         var newEnd = newStart.AddMinutes(service.DurationMinutes);
+
+        var businessHour = await _context.BusinessHours
+            .FirstOrDefaultAsync(h => h.TenantId == _current.TenantId!.Value && h.DayOfWeek == newStart.DayOfWeek);
+
+        if (businessHour != null &&
+            (!businessHour.IsOpen || newStart.TimeOfDay < businessHour.OpenTime || newEnd.TimeOfDay > businessHour.CloseTime))
+            throw new InvalidOperationException("El salón está cerrado en ese horario.");
 
         var hasConflict = await _context.Appointments
             .Where(a => a.StaffId == request.StaffId

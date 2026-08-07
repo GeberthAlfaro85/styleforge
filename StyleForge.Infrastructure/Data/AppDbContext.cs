@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<BusinessHour> BusinessHours => Set<BusinessHour>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +45,15 @@ public class AppDbContext : DbContext
             .HasQueryFilter(x =>
                 _currentUser.TenantId == null ||
                 x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<BusinessHour>()
+            .HasQueryFilter(x =>
+                _currentUser.TenantId == null ||
+                x.TenantId == _currentUser.TenantId);
+
+        modelBuilder.Entity<BusinessHour>()
+            .HasIndex(h => new { h.TenantId, h.DayOfWeek })
+            .IsUnique();
 
         modelBuilder.Entity<Appointment>()
             .HasOne(a => a.Client)

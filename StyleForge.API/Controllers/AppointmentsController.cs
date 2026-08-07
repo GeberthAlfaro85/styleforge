@@ -24,13 +24,14 @@ public class AppointmentsController : ControllerBase
     /// <summary>
     /// Lista todas las citas del salón ordenadas por fecha descendente. Solo Admin y empleados.
     /// </summary>
+    /// <param name="staffId">Filtra solo las citas asignadas a ese empleado.</param>
     [HttpGet]
     [Authorize(Roles = "Admin,User")]
-    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Guid? staffId = null)
     {
         page = Math.Max(page, 1);
         pageSize = Math.Clamp(pageSize, 1, 100);
-        return Ok(await _service.GetAll(page, pageSize));
+        return Ok(await _service.GetAll(page, pageSize, staffId));
     }
 
     /// <summary>

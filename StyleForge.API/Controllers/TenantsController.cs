@@ -11,28 +11,35 @@ namespace StyleForge.API.Controllers
     public class TenantsController : ControllerBase
     {
         private readonly ITenantService _tenantService;
+        private readonly ICurrentUserService _currentUser;
 
-        public TenantsController(ITenantService tenantService)
+        public TenantsController(ITenantService tenantService, ICurrentUserService currentUser)
         {
             _tenantService = tenantService;
+            _currentUser = currentUser;
         }
 
         /// <summary>
-        /// Lista todos los empleados del salón con paginación. Incluye al Admin.
+        /// Actualiza los datos del salón del Admin autenticado. Solo puede editar su propio tenant.
         /// </summary>
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateTenant dto)
         {
+            if (id != _currentUser.TenantId)
+                return Forbid();
+
             var result = await _tenantService.UpdateAsync(id, dto);
             return Ok(result);
         }
 
         [HttpGet("me")]
-        [Authorize]
         public async Task<IActionResult> GetMyTenant()
         {
-            var tenantId = Guid.Parse(User.FindFirst("tenantId")!.Value); // el claim que uses en tu JWT
-            var result = await _tenantService.GetByIdAsync(tenantId);
+            var tenantId = _currentUser.TenantId;
+            if (tenantId == null) return Unauthorized();
+
+            var result = await _tenantService.GetByIdAsync(tenantId.Value);
             return Ok(result);
         }
     }

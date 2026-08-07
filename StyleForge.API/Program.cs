@@ -104,6 +104,7 @@ builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IBusinessHourService, BusinessHourService>();
 
 builder.Services.AddRateLimiter(options =>
 {
