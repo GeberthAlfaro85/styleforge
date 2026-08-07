@@ -201,4 +201,12 @@ app.MapGet("/health", async (AppDbContext db) =>
     }
 });
 
+// TEMPORAL: diagnóstico del problema de rate limiting compartido. Quitar después de confirmar el fix.
+app.MapGet("/api/debug/ip", (HttpContext ctx) => new
+{
+    remoteIp = ctx.Connection.RemoteIpAddress?.ToString(),
+    xForwardedFor = ctx.Request.Headers["X-Forwarded-For"].ToString(),
+    xForwardedProto = ctx.Request.Headers["X-Forwarded-Proto"].ToString()
+});
+
 app.Run();
