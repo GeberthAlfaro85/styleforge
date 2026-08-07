@@ -4,6 +4,7 @@ using StyleForge.Application.DTOs.Auth;
 using StyleForge.Application.Interfaces;
 using StyleForge.Domain.Entities;
 using StyleForge.Infrastructure.Data;
+using System.Text.RegularExpressions;
 
 namespace StyleForge.Infrastructure.Services;
 
@@ -24,6 +25,7 @@ public class AuthService : IAuthService
         {
             Name = request.CompanyName,
             Email = request.Email,
+            Slug = await GenerateUniqueSlug(request.CompanyName),
             LicenseExpiresAt = DateTime.UtcNow.AddDays(30)
         };
 
@@ -93,6 +95,23 @@ public class AuthService : IAuthService
                 TenantId = client.TenantId
             }
         };
+    }
+
+    private async Task<string> GenerateUniqueSlug(string companyName)
+    {
+        var baseSlug = Regex.Replace(companyName.ToLowerInvariant().Trim(), @"[^a-z0-9]+", "-").Trim('-');
+        if (string.IsNullOrEmpty(baseSlug))
+            baseSlug = "salon";
+
+        var slug = baseSlug;
+        var counter = 2;
+        while (await _context.Tenants.AnyAsync(t => t.Slug == slug))
+        {
+            slug = $"{baseSlug}-{counter}";
+            counter++;
+        }
+
+        return slug;
     }
 
     private UserDto Map(User user)

@@ -51,6 +51,10 @@ public class AppDbContext : DbContext
                 _currentUser.TenantId == null ||
                 x.TenantId == _currentUser.TenantId);
 
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.Slug)
+            .IsUnique();
+
         modelBuilder.Entity<BusinessHour>()
             .HasIndex(h => new { h.TenantId, h.DayOfWeek })
             .IsUnique();

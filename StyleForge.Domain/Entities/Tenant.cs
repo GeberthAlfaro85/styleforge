@@ -12,6 +12,12 @@ public class Tenant
     /// <summary>Nombre comercial del salón.</summary>
     public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Identificador único para la URL pública del salón (ej. "salon-de-ana").
+    /// Se genera automáticamente al registrarse; el Admin puede cambiarlo después.
+    /// </summary>
+    public string? Slug { get; set; }
+
     public string TypBusiness { get; set; } = string.Empty;
 
     public string Address { get; set; } = string.Empty;

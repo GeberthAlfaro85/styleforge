@@ -42,5 +42,16 @@ namespace StyleForge.API.Controllers
             var result = await _tenantService.GetByIdAsync(tenantId.Value);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Consulta los datos públicos de un salón por su slug (ej. para su página pública de reservas).
+        /// No requiere autenticación. No incluye email ni datos de licencia.
+        /// </summary>
+        [HttpGet("by-slug/{slug}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetBySlug(string slug)
+        {
+            return Ok(await _tenantService.GetBySlugAsync(slug));
+        }
     }
 }
