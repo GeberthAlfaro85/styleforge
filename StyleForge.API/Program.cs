@@ -116,7 +116,7 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = 10,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -204,14 +204,6 @@ app.MapGet("/health", async (AppDbContext db) =>
         app.Logger.LogError(ex, "Health check failed");
         return Results.Json(new { status = "DB unreachable" }, statusCode: StatusCodes.Status503ServiceUnavailable);
     }
-});
-
-// TEMPORAL: diagnóstico del problema de rate limiting compartido. Quitar después de confirmar el fix.
-app.MapGet("/api/debug/ip", (HttpContext ctx) => new
-{
-    remoteIp = ctx.Connection.RemoteIpAddress?.ToString(),
-    xForwardedFor = ctx.Request.Headers["X-Forwarded-For"].ToString(),
-    xForwardedProto = ctx.Request.Headers["X-Forwarded-Proto"].ToString()
 });
 
 app.Run();
