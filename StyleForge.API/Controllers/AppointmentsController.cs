@@ -26,7 +26,7 @@ public class AppointmentsController : ControllerBase
     /// </summary>
     /// <param name="staffId">Filtra solo las citas asignadas a ese empleado.</param>
     [HttpGet]
-    [Authorize(Roles = "Admin,User")]
+    [Authorize(Roles = "Admin,User,Client")]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] Guid? staffId = null)
     {
         page = Math.Max(page, 1);
