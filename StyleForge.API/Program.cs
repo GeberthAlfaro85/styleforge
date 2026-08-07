@@ -125,6 +125,9 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // Render/Vercel están delante de este servicio con IPs que no podemos enumerar de antemano;
+    // confiamos en el X-Forwarded-For que ellos escriben. Quien le pegue directo a Render puede
+    // falsear este header, pero esa exposición ya existe hoy (Render es público) y es aceptable.
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
 });
