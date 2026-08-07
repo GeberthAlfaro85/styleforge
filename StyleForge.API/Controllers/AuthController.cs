@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using StyleForge.Application.DTOs.Auth;
 using StyleForge.Application.Interfaces;
 
@@ -9,6 +10,7 @@ namespace StyleForge.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/auth")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;

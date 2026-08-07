@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -10,6 +11,7 @@ using StyleForge.Infrastructure.Data;
 using StyleForge.Infrastructure.Services;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,6 +105,21 @@ builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 
 builder.Services.AddScoped<ITenantService, TenantService>();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
 var app = builder.Build();
 
 app.UseExceptionHandler(errApp =>
@@ -120,9 +137,18 @@ app.UseExceptionHandler(errApp =>
             _ => StatusCodes.Status500InternalServerError
         };
 
+        var message = statusCode == StatusCodes.Status500InternalServerError
+            ? "Error inesperado."
+            : ex?.Message ?? "Error inesperado";
+
+        if (statusCode == StatusCodes.Status500InternalServerError && ex != null)
+        {
+            app.Logger.LogError(ex, "Unhandled exception en {Path}", context.Request.Path);
+        }
+
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(new { message = ex?.Message ?? "Error inesperado" });
+        await context.Response.WriteAsJsonAsync(new { message });
     });
 });
 
@@ -136,6 +162,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseCors("FrontendDev");
 
+app.UseRateLimiter();
+
 app.UseAuthentication();
 
 app.UseMiddleware<LicenseMiddleware>();
@@ -144,6 +172,19 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-app.MapGet("/health", () => "OK");
+app.MapGet("/health", async (AppDbContext db) =>
+{
+    try
+    {
+        return await db.Database.CanConnectAsync()
+            ? Results.Ok(new { status = "OK" })
+            : Results.Json(new { status = "DB unreachable" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError(ex, "Health check failed");
+        return Results.Json(new { status = "DB unreachable" }, statusCode: StatusCodes.Status503ServiceUnavailable);
+    }
+});
 
 app.Run();

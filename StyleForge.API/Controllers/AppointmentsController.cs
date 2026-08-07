@@ -28,6 +28,8 @@ public class AppointmentsController : ControllerBase
     [Authorize(Roles = "Admin,User")]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         return Ok(await _service.GetAll(page, pageSize));
     }
 
@@ -39,6 +41,8 @@ public class AppointmentsController : ControllerBase
     [Authorize(Roles = "Client")]
     public async Task<IActionResult> GetMine([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         return Ok(await _service.GetMyAppointments(page, pageSize));
     }
 

@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using StyleForge.Application.Interfaces;
 using StyleForge.Infrastructure.Data;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace StyleForge.API.Controllers;
 
@@ -44,12 +47,16 @@ public class LicenseController : ControllerBase
     /// </summary>
     [HttpPost("renew")]
     [AllowAnonymous]
+    [EnableRateLimiting("auth")]
     public async Task<IActionResult> RenewLicense([FromBody] RenewLicenseRequest request)
     {
         var masterKey = _config["License:MasterKey"];
         var providedKey = Request.Headers["X-Master-Key"].FirstOrDefault();
 
-        if (string.IsNullOrEmpty(providedKey) || providedKey != masterKey)
+        if (string.IsNullOrEmpty(providedKey) || string.IsNullOrEmpty(masterKey) ||
+            !CryptographicOperations.FixedTimeEquals(
+                Encoding.UTF8.GetBytes(providedKey),
+                Encoding.UTF8.GetBytes(masterKey)))
             return Unauthorized(new { message = "Master key inválida." });
 
         var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Id == request.TenantId);

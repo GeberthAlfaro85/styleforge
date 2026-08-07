@@ -124,7 +124,7 @@ public class AppointmentService : IAppointmentService
             .FirstOrDefaultAsync(a => a.Id == id);
 
         if (appointment == null)
-            throw new Exception("Appointment not found");
+            throw new KeyNotFoundException("Appointment not found");
 
         appointment.Status = request.Status;
         await _context.SaveChangesAsync();

@@ -24,7 +24,8 @@
       "Bash(node -e \"console.log\\(require\\('./node_modules/tailwindcss/package.json'\\).version\\)\")",
       "PowerShell(Test-NetConnection -ComputerName \"db.kyradaefwqrckzhrzday.supabase.co\" -Port 5432)",
       "Bash(Remove-Item \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\\\\StyleForge.Infrastructure\\\\Migrations\\\\202605*\")",
-      "Bash(Remove-Item \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\\\\StyleForge.Infrastructure\\\\Migrations\\\\AppDbContextModelSnapshot.cs\")"
+      "Bash(Remove-Item \"C:\\\\Users\\\\geber\\\\source\\\\repos\\\\StyleForge\\\\StyleForge.Infrastructure\\\\Migrations\\\\AppDbContextModelSnapshot.cs\")",
+      "Bash(dotnet test *)"
     ]
   }
 }

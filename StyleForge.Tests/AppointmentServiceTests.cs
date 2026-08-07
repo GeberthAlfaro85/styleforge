@@ -93,7 +93,7 @@ public class AppointmentServiceTests
         });
 
         // Segunda cita a las 10:30 → conflicto
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
             svc.Create(new CreateAppointmentRequest
             {
                 ClientId = _clientId,
@@ -166,7 +166,7 @@ public class AppointmentServiceTests
     {
         var (svc, _) = BuildService();
 
-        var ex = await Assert.ThrowsAsync<Exception>(() =>
+        var ex = await Assert.ThrowsAsync<KeyNotFoundException>(() =>
             svc.UpdateStatus(Guid.NewGuid(), new UpdateAppointmentStatusRequest { Status = "Confirmed" }));
 
         Assert.Contains("not found", ex.Message);

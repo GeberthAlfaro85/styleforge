@@ -29,6 +29,8 @@ public class ClientsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         return Ok(await _service.GetAll(search, page, pageSize));
     }
 

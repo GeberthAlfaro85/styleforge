@@ -131,6 +131,20 @@ Render redespliega automáticamente en cada push a `main`.
 
 ---
 
+## CORS
+
+El backend solo permite el origen `http://localhost:4200` (ver `Program.cs`). Esto es intencional: el frontend en Vercel **no llama directo** a Render. En `vercel.json` hay un rewrite:
+
+```json
+{ "source": "/api/:path*", "destination": "https://styleforge-pjbu.onrender.com/api/:path*" }
+```
+
+y `environment.prod.ts` apunta a `apiUrl: '/api'` (ruta relativa). Vercel reescribe la petición server-side antes de que llegue al navegador, así que desde la perspectiva del browser todo es same-origin y CORS nunca se activa en producción.
+
+La whitelist de `http://localhost:4200` solo protege contra quien le pegue **directo** al dominio de Render (por ejemplo, un `environment.ts` de dev mal configurado). Si en algún momento algo necesita llamar directo a Render desde el navegador, hay que agregar ese origen a `WithOrigins(...)`.
+
+---
+
 ## Arquitectura
 
 ```

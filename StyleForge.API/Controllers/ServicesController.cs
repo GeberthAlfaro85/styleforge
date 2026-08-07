@@ -28,6 +28,8 @@ public class ServicesController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
         return Ok(await _service.GetAll(page, pageSize));
     }
 
