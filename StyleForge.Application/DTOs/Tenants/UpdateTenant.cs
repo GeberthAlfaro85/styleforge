@@ -16,5 +16,8 @@ namespace StyleForge.Application.DTOs.Tenants
         public string City { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>Solo lectura en este DTO: se ignora al recibir un Update, se cambia vía el endpoint dedicado de logo.</summary>
+        public string? LogoUrl { get; set; }
     }
 }

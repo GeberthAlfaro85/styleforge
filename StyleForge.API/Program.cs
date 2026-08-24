@@ -171,6 +171,8 @@ app.UseExceptionHandler(errApp =>
     });
 });
 
+app.UseStaticFiles();
+
 app.UseSwagger();
 app.UseSwaggerUI();
 

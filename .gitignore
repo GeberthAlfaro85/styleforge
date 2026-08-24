@@ -3,3 +3,8 @@ obj/
 .vs/
 *.user
 *.suo
+
+# Logos subidos por los tenants (archivo, no versionado; ver caveat de disco efímero en Render)
+StyleForge.API/wwwroot/uploads/logos/*
+!StyleForge.API/wwwroot/uploads/logos/.gitkeep
+StyleForge.API/appsettings.json

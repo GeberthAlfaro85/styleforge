@@ -13,4 +13,5 @@ public class PublicTenantDto
     public string City { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string? LogoUrl { get; set; }
 }

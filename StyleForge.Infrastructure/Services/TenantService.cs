@@ -55,7 +55,8 @@ namespace StyleForge.Infrastructure.Services
                 Address = tenant.Address,
                 City = tenant.City,
                 Phone = tenant.Phone,
-                Description = tenant.Description
+                Description = tenant.Description,
+                LogoUrl = tenant.LogoUrl
             };
         }
 
@@ -76,7 +77,8 @@ namespace StyleForge.Infrastructure.Services
                 Address = tenant.Address,
                 City = tenant.City,
                 Phone = tenant.Phone,
-                Description = tenant.Description
+                Description = tenant.Description,
+                LogoUrl = tenant.LogoUrl
             };
         }
 
@@ -99,8 +101,32 @@ namespace StyleForge.Infrastructure.Services
                 Address = tenant.Address,
                 City = tenant.City,
                 Phone = tenant.Phone,
-                Description = tenant.Description
+                Description = tenant.Description,
+                LogoUrl = tenant.LogoUrl
             };
+        }
+
+        public async Task<string?> UpdateLogoAsync(Guid tenantId, string? logoUrl)
+        {
+            var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId);
+
+            if (tenant is null)
+                throw new KeyNotFoundException("Tenant no encontrado.");
+
+            tenant.LogoUrl = logoUrl;
+            await _context.SaveChangesAsync();
+
+            return tenant.LogoUrl;
+        }
+
+        public async Task<string?> GetLogoUrlAsync(Guid tenantId)
+        {
+            var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == tenantId);
+
+            if (tenant is null)
+                throw new KeyNotFoundException("Tenant no encontrado.");
+
+            return tenant.LogoUrl;
         }
     }
 }

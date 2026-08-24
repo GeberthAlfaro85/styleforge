@@ -28,6 +28,12 @@ public class Tenant
 
     public string Description { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Ruta relativa del logo del salón (ej. "/uploads/logos/{id}.jpg"), servida como archivo estático.
+    /// Null si el salón no ha subido uno.
+    /// </summary>
+    public string? LogoUrl { get; set; }
+
     /// <summary>Email del salón (mismo del usuario Admin al registrarse).</summary>
     public string Email { get; set; } = string.Empty;
 
