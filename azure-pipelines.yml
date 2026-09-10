@@ -1,0 +1,31 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  projectPath: 'StyleForge.API/StyleForge.API.csproj'
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Install .NET 8 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.x'
+
+- script: dotnet restore $(projectPath)
+  displayName: 'dotnet restore'
+
+- script: dotnet build $(projectPath) --configuration $(buildConfiguration)
+  displayName: 'dotnet build'
+
+- script: dotnet publish $(projectPath) --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+  displayName: 'dotnet publish'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'styleforge-api'
