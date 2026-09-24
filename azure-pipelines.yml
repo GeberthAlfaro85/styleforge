@@ -18,10 +18,10 @@ steps:
 - script: dotnet restore $(projectPath)
   displayName: 'dotnet restore'
 
-- script: dotnet build $(projectPath) --configuration $(buildConfiguration)
+- script: dotnet build $(projectPath) --configuration $(buildConfiguration) --no-restore
   displayName: 'dotnet build'
 
-- script: dotnet publish $(projectPath) --configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)
+- script: dotnet publish $(projectPath) --configuration $(buildConfiguration) --no-restore --output $(Build.ArtifactStagingDirectory)
   displayName: 'dotnet publish'
 
 - task: PublishBuildArtifacts@1
