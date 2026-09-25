@@ -7,25 +7,52 @@ pool:
 variables:
   buildConfiguration: 'Release'
   projectPath: 'StyleForge.API/StyleForge.API.csproj'
+  azureSubscription: 'styleforge-azure-connection'
+  webAppName: 'styleforge-api-geberth'
 
-steps:
-- task: UseDotNet@2
-  displayName: 'Install .NET 8 SDK'
-  inputs:
-    packageType: 'sdk'
-    version: '8.x'
+stages:
+- stage: Build
+  jobs:
+  - job: BuildAndPublish
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET 8 SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '8.x'
 
-- script: dotnet restore $(projectPath)
-  displayName: 'dotnet restore'
+    - script: dotnet restore $(projectPath)
+      displayName: 'dotnet restore'
 
-- script: dotnet build $(projectPath) --configuration $(buildConfiguration) --no-restore
-  displayName: 'dotnet build'
+    - script: dotnet build $(projectPath) --configuration $(buildConfiguration) --no-restore
+      displayName: 'dotnet build'
 
-- script: dotnet publish $(projectPath) --configuration $(buildConfiguration) --no-restore --output $(Build.ArtifactStagingDirectory)
-  displayName: 'dotnet publish'
+    - script: dotnet publish $(projectPath) --configuration $(buildConfiguration) --no-restore --output $(Build.ArtifactStagingDirectory)
+      displayName: 'dotnet publish'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'styleforge-api'
+    - task: PublishBuildArtifacts@1
+      displayName: 'Publish Artifact'
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'styleforge-api'
+
+- stage: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - job: DeployToAzure
+    steps:
+    - task: DownloadBuildArtifacts@1
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: 'styleforge-api'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+    - task: AzureWebApp@1
+      displayName: 'Deploy to Azure App Service'
+      inputs:
+        azureSubscription: '$(azureSubscription)'
+        appType: 'webAppLinux'
+        appName: '$(webAppName)'
+        package: '$(System.ArtifactsDirectory)/styleforge-api'
