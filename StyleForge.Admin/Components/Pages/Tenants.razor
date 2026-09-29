@@ -2,34 +2,95 @@
 @inject LicenseAdminService Svc
 @inject AuthenticationStateProvider Auth
 
-<h3>Tenants</h3>
+<div class="container py-4">
 
-@if (tenants is null) { <p>Cargando...</p> }
-else
-{
-    <table class="table">
-        <tr><th>Nombre</th><th>Expira</th><th>Días</th><th></th></tr>
-        @foreach (var t in tenants)
-        {
-            <tr>
-                <td>@t.Name</td>
-                <td>@t.LicenseExpiresAt?.ToString("yyyy-MM-dd")</td>
-                <td><input type="number" min="1" max="3650" @bind="days[t.Id]" /></td>
-                <td><button @onclick="() => Renew(t.Id)">Renovar</button></td>
-            </tr>
-        }
-    </table>
-}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-0">Licencias</h3>
+            <small class="text-muted">@(tenants?.Count ?? 0) tenants</small>
+        </div>
+        <form method="post" action="/logout">
+            <button type="submit" class="btn btn-outline-secondary btn-sm">Cerrar sesión</button>
+        </form>
+    </div>
 
-@if (message is not null)
-{
-    <p><strong>@message</strong></p>
-}
+    @if (message is not null)
+    {
+        <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible" role="alert">
+            @message
+            <button type="button" class="btn-close" @onclick="() => message = null"></button>
+        </div>
+    }
+
+    @if (tenants is null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border" role="status"></div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-header bg-transparent">
+                <input class="form-control" placeholder="Buscar tenant..."
+                       @bind="search" @bind:event="oninput" />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Expira</th>
+                            <th style="width:120px">Días</th>
+                            <th style="width:130px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Filtered)
+                        {
+                            var (label, css) = Status(t.LicenseExpiresAt);
+                            <tr>
+                                <td class="fw-semibold">@t.Name</td>
+                                <td><span class="badge @css">@label</span></td>
+                                <td>@(t.LicenseExpiresAt?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td>
+                                    <input type="number" class="form-control form-control-sm"
+                                           min="1" max="3650" @bind="days[t.Id]" />
+                                </td>
+                                <td class="text-end">
+                                    <button class="btn btn-primary btn-sm"
+                                            disabled="@(busyId == t.Id)"
+                                            @onclick="() => Renew(t.Id)">
+                                        @(busyId == t.Id ? "Renovando..." : "Renovar")
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Filtered.Any())
+                        {
+                            <tr><td colspan="5" class="text-center text-muted py-4">Sin resultados</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
     List<Tenant>? tenants;
     Dictionary<Guid, int> days = new();
     string? message;
+    bool isError;
+    string search = "";
+    Guid? busyId;
+
+    IEnumerable<Tenant> Filtered =>
+        tenants?.Where(t => string.IsNullOrWhiteSpace(search)
+            || (t.Name ?? "").Contains(search, StringComparison.OrdinalIgnoreCase))
+        ?? Enumerable.Empty<Tenant>();
 
     protected override async Task OnInitializedAsync() => await Load();
 
@@ -39,18 +100,34 @@ else
         foreach (var t in tenants) days.TryAdd(t.Id, 30);
     }
 
+    static (string Label, string Css) Status(DateTime? expires)
+    {
+        if (expires is null) return ("Sin licencia", "text-bg-secondary");
+        var left = expires.Value - DateTime.UtcNow;
+        if (left <= TimeSpan.Zero) return ("Vencida", "text-bg-danger");
+        if (left.TotalDays <= 7) return ("Por vencer", "text-bg-warning");
+        return ("Activa", "text-bg-success");
+    }
+
     async Task Renew(Guid id)
     {
+        busyId = id;
         try
         {
             var user = (await Auth.GetAuthenticationStateAsync()).User.Identity?.Name ?? "?";
             var newDate = await Svc.RenewAsync(id, days[id], user);
-            message = $"Renovada hasta {newDate:yyyy-MM-dd}.";
+            message = $"Licencia renovada hasta {newDate:dd/MM/yyyy}.";
+            isError = false;
             await Load();
         }
         catch (Exception ex)
         {
             message = $"Error: {ex.Message}";
+            isError = true;
+        }
+        finally
+        {
+            busyId = null;
         }
     }
 }
