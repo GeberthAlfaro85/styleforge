@@ -1,0 +1,56 @@
+﻿@page "/tenants"
+@inject LicenseAdminService Svc
+@inject AuthenticationStateProvider Auth
+
+<h3>Tenants</h3>
+
+@if (tenants is null) { <p>Cargando...</p> }
+else
+{
+    <table class="table">
+        <tr><th>Nombre</th><th>Expira</th><th>Días</th><th></th></tr>
+        @foreach (var t in tenants)
+        {
+            <tr>
+                <td>@t.Name</td>
+                <td>@t.LicenseExpiresAt?.ToString("yyyy-MM-dd")</td>
+                <td><input type="number" min="1" max="3650" @bind="days[t.Id]" /></td>
+                <td><button @onclick="() => Renew(t.Id)">Renovar</button></td>
+            </tr>
+        }
+    </table>
+}
+
+@if (message is not null)
+{
+    <p><strong>@message</strong></p>
+}
+
+@code {
+    List<Tenant>? tenants;
+    Dictionary<Guid, int> days = new();
+    string? message;
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    async Task Load()
+    {
+        tenants = await Svc.GetTenantsAsync();
+        foreach (var t in tenants) days.TryAdd(t.Id, 30);
+    }
+
+    async Task Renew(Guid id)
+    {
+        try
+        {
+            var user = (await Auth.GetAuthenticationStateAsync()).User.Identity?.Name ?? "?";
+            var newDate = await Svc.RenewAsync(id, days[id], user);
+            message = $"Renovada hasta {newDate:yyyy-MM-dd}.";
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+}

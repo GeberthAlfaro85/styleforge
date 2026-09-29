@@ -50,13 +50,7 @@ public class LicenseController : ControllerBase
     [EnableRateLimiting("auth")]
     public async Task<IActionResult> RenewLicense([FromBody] RenewLicenseRequest request)
     {
-        var masterKey = _config["License:MasterKey"];
-        var providedKey = Request.Headers["X-Master-Key"].FirstOrDefault();
-
-        if (string.IsNullOrEmpty(providedKey) || string.IsNullOrEmpty(masterKey) ||
-            !CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(providedKey),
-                Encoding.UTF8.GetBytes(masterKey)))
+        if (!IsMasterKeyValid())
             return Unauthorized(new { message = "Master key inválida." });
 
         var tenant = await _db.Tenants.FirstOrDefaultAsync(t => t.Id == request.TenantId);
@@ -67,7 +61,7 @@ public class LicenseController : ControllerBase
             ? tenant.LicenseExpiresAt.Value
             : DateTime.UtcNow;
 
-        tenant.LicenseExpiresAt = baseDate.AddDays(request.Days);
+        tenant.LicenseExpiresAt = baseDate.AddDays(request.Days); 
         await _db.SaveChangesAsync();
 
         return Ok(new
@@ -77,6 +71,29 @@ public class LicenseController : ControllerBase
             tenantName = tenant.Name,
             license = BuildLicenseResponse(tenant.IsLicenseActive, tenant.LicenseExpiresAt)
         });
+    }
+
+    [HttpGet("tenants")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth")]
+    public async Task<IActionResult> LoadTenats()
+    {
+        if (!IsMasterKeyValid())
+            return Unauthorized(new { message = "Master key inválida." });
+
+        var tenants = await _db.Tenants
+        .AsNoTracking()
+        .OrderBy(t => t.Name)
+        .ToListAsync();
+
+        var result = tenants.Select(t => new
+        {
+            tenantId = t.Id,
+            tenantName = t.Name,
+            license = BuildLicenseResponse(t.IsLicenseActive, t.LicenseExpiresAt)
+        });
+
+        return Ok(result);
     }
 
     private static object BuildLicenseResponse(bool isActive, DateTime? expiresAt) => new
@@ -92,6 +109,19 @@ public class LicenseController : ControllerBase
                 ? "Activa"
                 : "Expirada"
     };
+
+    private bool IsMasterKeyValid()
+    {
+        var masterKey = _config["License:MasterKey"];
+        var providedKey = Request.Headers["X-Master-Key"].FirstOrDefault();
+
+        if (string.IsNullOrEmpty(providedKey) || string.IsNullOrEmpty(masterKey))
+            return false;
+
+        var a = SHA256.HashData(Encoding.UTF8.GetBytes(providedKey));
+        var b = SHA256.HashData(Encoding.UTF8.GetBytes(masterKey));
+        return CryptographicOperations.FixedTimeEquals(a, b);
+    }
 }
 
 public record RenewLicenseRequest(Guid TenantId, int Days);
